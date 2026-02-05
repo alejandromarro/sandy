@@ -632,7 +632,7 @@ class CategoryCov():
         return self.__class__(df)
 
     def sampling(self, nsmp, seed=None, lognormal=True, correction=0.5/100,
-                 lhs=False, verbose=False, **kwargs):
+                 lhs=False, verbose=False, truncate_normal=True, apply_function=True, **kwargs):
         """
         Extract perturbation coefficients from the covariance matrix using either
         a normal or lognormal distribution. Samples are adjusted to ensure physical
@@ -736,10 +736,14 @@ class CategoryCov():
             samples = (
                 self.regularize(correction=correction)
                 .draw_sample(N, lhs=lhs, verbose=verbose, seed=seed)
-                .apply_function(lambda x: x + 1)
-                .truncate_normal()
-                )
-
+            )
+            
+            if apply_function:
+                samples = samples.apply_function(lambda x: x + 1)
+            
+            if truncate_normal and apply_function:
+                samples = samples.truncate_normal()
+                
         return samples
 
     def sandwich(self, s):
